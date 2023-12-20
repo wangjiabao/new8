@@ -686,6 +686,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		AllRewardList:        allRewardList,
 		RecommendAddressList: recommendAddresses,
 		WithdrawRate:         withdrawRate,
+		RecommendRewardTotal: fmt.Sprintf("%.2f", float64(recommendRewardTotal)/float64(10000000000)),
 		TotalDeposit:         fmt.Sprintf("%.2f", float64(totalDeposit)/float64(10000000000)),
 	}, nil
 }
