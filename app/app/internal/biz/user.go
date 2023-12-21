@@ -77,10 +77,11 @@ type Config struct {
 }
 
 type UserBalance struct {
-	ID          int64
-	UserId      int64
-	BalanceUsdt int64
-	BalanceDhb  int64
+	ID           int64
+	UserId       int64
+	BalanceUsdt  int64
+	BalanceUsdt2 int64
+	BalanceDhb   int64
 }
 
 type Withdraw struct {
@@ -432,18 +433,19 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		userRewards           []*Reward
 		userRewardTotal       int64
 		encodeString          string
-		myUserRecommendUserId int64
-		myRecommendUser       *User
 		recommendTeamNum      int64
 		myCode                string
-		inviteUserAddress     string
 		amount                = "0"
+		amount2               = "0"
 		configs               []*Config
 		myLastLocationCurrent int64
 		withdrawAmount        int64
+		myUserRecommendUserId int64
+		inviteUserAddress     string
+		myRecommendUser       *User
 		withdrawRate          int64
-		amountAll             int64
 		myLocations           []*v1.UserInfoReply_List
+		myLocations2          []*v1.UserInfoReply_List22
 		allRewardList         []*v1.UserInfoReply_List9
 		timeAgain             int64
 		err                   error
@@ -471,12 +473,11 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
 	if nil != locations && 0 < len(locations) {
-		tmpCurrentMaxSubCurrent := int64(0)
 		for _, v := range locations {
-			if v.CurrentMax >= v.Current {
-				tmpCurrentMaxSubCurrent = v.CurrentMax - v.Current
+			if "running" == v.Status {
+				amount = fmt.Sprintf("%.4f", float64(v.Current)/float64(10000000000))
 			}
-			amountAll += v.CurrentMax
+
 			myLocations = append(myLocations, &v1.UserInfoReply_List{
 				CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 				Amount:    fmt.Sprintf("%.2f", float64(v.Usdt)/float64(10000000000)),
@@ -485,7 +486,6 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 			})
 		}
 
-		amount = fmt.Sprintf("%.4f", float64(tmpCurrentMaxSubCurrent)/float64(10000000000))
 	}
 
 	// 冻结
@@ -498,6 +498,25 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 				myLastLocationCurrent += vMyLastStopLocations.Current - vMyLastStopLocations.CurrentMax
 			}
 		}
+	}
+
+	var (
+		locations2 []*LocationNew
+	)
+	locations2, err = uuc.locationRepo.GetLocationsByUserId2(ctx, myUser.ID)
+	if nil != locations2 && 0 < len(locations2) {
+		for _, v := range locations2 {
+			if "running" == v.Status {
+				amount2 = fmt.Sprintf("%.4f", float64(v.Current)/float64(10000000000))
+			}
+
+			myLocations2 = append(myLocations2, &v1.UserInfoReply_List22{
+				CreatedAt: v.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
+				Amount:    fmt.Sprintf("%.2f", float64(v.Usdt)/float64(10000000000)),
+				AmountMax: fmt.Sprintf("%.2f", float64(v.CurrentMax)/float64(10000000000)),
+			})
+		}
+
 	}
 
 	userBalance, err = uuc.ubRepo.GetUserBalance(ctx, myUser.ID)
@@ -609,6 +628,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		locationTotal                 int64
 		yesterdayLocationTotal        int64
 		recommendRewardTotal          int64
+		recommendRewardDhbTotal       int64
 		yesterdayRecommendRewardTotal int64
 	)
 
@@ -660,34 +680,50 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
 				})
+			} else if "recommend_token" == vUserReward.Reason {
+				recommendRewardDhbTotal += vUserReward.Amount
 			}
 		}
 	}
 
+	var (
+		withdraws []*Withdraw
+	)
+	withdraws, err = uuc.ubRepo.GetWithdrawByUserId(ctx, user.ID, "usdt")
+	if nil != err {
+		return nil, err
+	}
+	for _, v := range withdraws {
+		withdrawAmount += v.Amount
+	}
+
 	return &v1.UserInfoReply{
-		Address:              myUser.Address,
-		Level:                userInfo.Vip,
-		Amount:               amount,
-		AmountB:              fmt.Sprintf("%.2f", float64(myLastLocationCurrent)/float64(10000000000)),
-		DepositList:          depositList,
-		AmountAll:            fmt.Sprintf("%.2f", float64(amountAll)/float64(10000000000)),
-		BalanceUsdt:          fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
-		BalanceDhb:           fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(10000000000)),
-		InviteUrl:            encodeString,
-		InviteUserAddress:    inviteUserAddress,
-		RecommendNum:         userInfo.HistoryRecommend,
-		RecommendTeamNum:     recommendTeamNum,
-		Total:                fmt.Sprintf("%.2f", float64(userRewardTotal)/float64(10000000000)),
-		WithdrawAmount:       fmt.Sprintf("%.2f", float64(withdrawAmount)/float64(10000000000)),
-		LocationTotal:        fmt.Sprintf("%.2f", float64(locationTotal)/float64(10000000000)),
-		Account:              "0xAfC39F3592A1024144D1ba6DC256397F4DbfbE2f",
-		LocationList:         myLocations,
-		TeamAddressList:      teamUserAddresses,
-		AllRewardList:        allRewardList,
-		RecommendAddressList: recommendAddresses,
-		WithdrawRate:         withdrawRate,
-		RecommendRewardTotal: fmt.Sprintf("%.2f", float64(recommendRewardTotal)/float64(10000000000)),
-		TotalDeposit:         fmt.Sprintf("%.2f", float64(totalDeposit)/float64(10000000000)),
+		Address:                 myUser.Address,
+		Level:                   userInfo.Vip,
+		Amount:                  amount,
+		Amount2:                 amount2,
+		LocationList2:           myLocations2,
+		AmountB:                 fmt.Sprintf("%.2f", float64(myLastLocationCurrent)/float64(10000000000)),
+		DepositList:             depositList,
+		BalanceUsdt:             fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt)/float64(10000000000)),
+		BalanceUsdt2:            fmt.Sprintf("%.2f", float64(userBalance.BalanceUsdt2)/float64(10000000000)),
+		BalanceDhb:              fmt.Sprintf("%.2f", float64(userBalance.BalanceDhb)/float64(10000000000)),
+		InviteUrl:               encodeString,
+		RecommendNum:            userInfo.HistoryRecommend,
+		RecommendTeamNum:        recommendTeamNum,
+		Total:                   fmt.Sprintf("%.2f", float64(userRewardTotal)/float64(10000000000)),
+		WithdrawAmount:          fmt.Sprintf("%.2f", float64(withdrawAmount)/float64(10000000000)),
+		LocationTotal:           fmt.Sprintf("%.2f", float64(locationTotal)/float64(10000000000)),
+		Account:                 "0xAfC39F3592A1024144D1ba6DC256397F4DbfbE2f",
+		LocationList:            myLocations,
+		TeamAddressList:         teamUserAddresses,
+		AllRewardList:           allRewardList,
+		InviteUserAddress:       inviteUserAddress,
+		RecommendAddressList:    recommendAddresses,
+		WithdrawRate:            withdrawRate,
+		RecommendRewardTotal:    fmt.Sprintf("%.2f", float64(recommendRewardTotal)/float64(10000000000)),
+		RecommendRewardDhbTotal: fmt.Sprintf("%.2f", float64(recommendRewardDhbTotal)/float64(10000000000)),
+		TotalDeposit:            fmt.Sprintf("%.2f", float64(totalDeposit)/float64(10000000000)),
 	}, nil
 }
 

@@ -728,17 +728,17 @@ components:
             properties:
                 address:
                     type: string
-                level:
+                recommendRewardTotal:
                     type: string
-                amountAll:
+                LocationTotal:
+                    type: string
+                balanceUsdt:
+                    type: string
+                withdrawAmount:
                     type: string
                 amount:
                     type: string
                 amountB:
-                    type: string
-                balanceUsdt:
-                    type: string
-                balanceDhb:
                     type: string
                 inviteUrl:
                     type: string
@@ -746,26 +746,42 @@ components:
                     type: string
                 recommendNum:
                     type: string
+                level:
+                    type: string
+                    description: 模式2
+                recommendRewardDhbTotal:
+                    type: string
+                amount2:
+                    type: string
+                balanceDhb:
+                    type: string
+                rewardWithdraw:
+                    type: string
+                balanceUsdt2:
+                    type: string
+                withdrawAmount2:
+                    type: string
+                totalDeposit:
+                    type: string
+                    description: 统计
+                withdrawAll:
+                    type: string
                 recommendTeamNum:
                     type: string
                 total:
-                    type: string
-                LocationTotal:
-                    type: string
-                recommendRewardTotal:
                     type: string
                 totalHbs:
                     type: string
                 account:
                     type: string
-                withdrawAmount:
-                    type: string
-                totalDeposit:
-                    type: string
                 LocationList:
                     type: array
                     items:
                         $ref: '#/components/schemas/UserInfoReply_List'
+                LocationList2:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/UserInfoReply_List22'
                 locationRewardList:
                     type: array
                     items:
@@ -827,6 +843,15 @@ components:
                 createdAt:
                     type: string
                 amount:
+                    type: string
+        UserInfoReply_List22:
+            type: object
+            properties:
+                createdAt:
+                    type: string
+                amount:
+                    type: string
+                amountMax:
                     type: string
         UserInfoReply_List5:
             type: object

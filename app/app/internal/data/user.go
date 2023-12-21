@@ -103,12 +103,13 @@ type Config struct {
 }
 
 type UserBalance struct {
-	ID          int64     `gorm:"primarykey;type:int"`
-	UserId      int64     `gorm:"type:int"`
-	BalanceUsdt int64     `gorm:"type:bigint"`
-	BalanceDhb  int64     `gorm:"type:bigint"`
-	CreatedAt   time.Time `gorm:"type:datetime;not null"`
-	UpdatedAt   time.Time `gorm:"type:datetime;not null"`
+	ID           int64     `gorm:"primarykey;type:int"`
+	UserId       int64     `gorm:"type:int"`
+	BalanceUsdt  int64     `gorm:"type:bigint"`
+	BalanceUsdt2 int64     `gorm:"type:bigint"`
+	BalanceDhb   int64     `gorm:"type:bigint"`
+	CreatedAt    time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt    time.Time `gorm:"type:datetime;not null"`
 }
 
 type Withdraw struct {
@@ -840,10 +841,11 @@ func (ub UserBalanceRepo) GetUserBalance(ctx context.Context, userId int64) (*bi
 	}
 
 	return &biz.UserBalance{
-		ID:          userBalance.ID,
-		UserId:      userBalance.UserId,
-		BalanceUsdt: userBalance.BalanceUsdt,
-		BalanceDhb:  userBalance.BalanceDhb,
+		ID:           userBalance.ID,
+		UserId:       userBalance.UserId,
+		BalanceUsdt:  userBalance.BalanceUsdt,
+		BalanceUsdt2: userBalance.BalanceUsdt2,
+		BalanceDhb:   userBalance.BalanceDhb,
 	}, nil
 }
 
@@ -1509,7 +1511,7 @@ func (ub *UserBalanceRepo) GetUserBalanceRecordsByUserId(ctx context.Context, us
 	var userBalanceRecord []*UserBalanceRecord
 	res := make([]*biz.UserBalanceRecord, 0)
 	if err := ub.data.db.Where("user_id=?", userId).
-		Where("type=? and coin_type=?", "deposit", "usdt").Table("user_balance_record").Find(&userBalanceRecord).Error; err != nil {
+		Where("(type=? or type=?) and coin_type=?", "deposit_2", "deposit", "usdt").Table("user_balance_record").Find(&userBalanceRecord).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return res, errors.NotFound("WITHDRAW_NOT_FOUND", "withdraw not found")
 		}

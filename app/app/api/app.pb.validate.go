@@ -828,17 +828,17 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for Address
 
-	// no validation rules for Level
+	// no validation rules for RecommendRewardTotal
 
-	// no validation rules for AmountAll
+	// no validation rules for LocationTotal
+
+	// no validation rules for BalanceUsdt
+
+	// no validation rules for WithdrawAmount
 
 	// no validation rules for Amount
 
 	// no validation rules for AmountB
-
-	// no validation rules for BalanceUsdt
-
-	// no validation rules for BalanceDhb
 
 	// no validation rules for InviteUrl
 
@@ -846,21 +846,31 @@ func (m *UserInfoReply) validate(all bool) error {
 
 	// no validation rules for RecommendNum
 
+	// no validation rules for Level
+
+	// no validation rules for RecommendRewardDhbTotal
+
+	// no validation rules for Amount2
+
+	// no validation rules for BalanceDhb
+
+	// no validation rules for RewardWithdraw
+
+	// no validation rules for BalanceUsdt2
+
+	// no validation rules for WithdrawAmount2
+
+	// no validation rules for TotalDeposit
+
+	// no validation rules for WithdrawAll
+
 	// no validation rules for RecommendTeamNum
 
 	// no validation rules for Total
 
-	// no validation rules for LocationTotal
-
-	// no validation rules for RecommendRewardTotal
-
 	// no validation rules for TotalHbs
 
 	// no validation rules for Account
-
-	// no validation rules for WithdrawAmount
-
-	// no validation rules for TotalDeposit
 
 	for idx, item := range m.GetLocationList() {
 		_, _ = idx, item
@@ -888,6 +898,40 @@ func (m *UserInfoReply) validate(all bool) error {
 			if err := v.Validate(); err != nil {
 				return UserInfoReplyValidationError{
 					field:  fmt.Sprintf("LocationList[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	for idx, item := range m.GetLocationList2() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, UserInfoReplyValidationError{
+						field:  fmt.Sprintf("LocationList2[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, UserInfoReplyValidationError{
+						field:  fmt.Sprintf("LocationList2[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return UserInfoReplyValidationError{
+					field:  fmt.Sprintf("LocationList2[%v]", idx),
 					reason: "embedded message failed validation",
 					cause:  err,
 				}
@@ -7532,6 +7576,114 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UserInfoReply_ListValidationError{}
+
+// Validate checks the field values on UserInfoReply_List22 with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UserInfoReply_List22) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UserInfoReply_List22 with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UserInfoReply_List22MultiError, or nil if none found.
+func (m *UserInfoReply_List22) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UserInfoReply_List22) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for CreatedAt
+
+	// no validation rules for Amount
+
+	// no validation rules for AmountMax
+
+	if len(errors) > 0 {
+		return UserInfoReply_List22MultiError(errors)
+	}
+
+	return nil
+}
+
+// UserInfoReply_List22MultiError is an error wrapping multiple validation
+// errors returned by UserInfoReply_List22.ValidateAll() if the designated
+// constraints aren't met.
+type UserInfoReply_List22MultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UserInfoReply_List22MultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UserInfoReply_List22MultiError) AllErrors() []error { return m }
+
+// UserInfoReply_List22ValidationError is the validation error returned by
+// UserInfoReply_List22.Validate if the designated constraints aren't met.
+type UserInfoReply_List22ValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UserInfoReply_List22ValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UserInfoReply_List22ValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UserInfoReply_List22ValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UserInfoReply_List22ValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UserInfoReply_List22ValidationError) ErrorName() string {
+	return "UserInfoReply_List22ValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UserInfoReply_List22ValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUserInfoReply_List22.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UserInfoReply_List22ValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UserInfoReply_List22ValidationError{}
 
 // Validate checks the field values on UserInfoReply_List2 with the rules
 // defined in the proto definition for this message. If any rules are

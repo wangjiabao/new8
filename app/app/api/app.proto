@@ -246,23 +246,31 @@ message UserInfoRequest {
 
 message UserInfoReply {
 	string address = 1; // 地址
-	int64 level = 2; // vip
-	string amountAll = 3; // 总出局金额
-	string amount = 4; // 未释放
+	string recommendRewardTotal = 92; // 直推奖总
+	string LocationTotal = 15; // 代数总奖
+	string balanceUsdt = 5; // 未提现金
+	string withdrawAmount = 30; // 提现金额
+	string amount = 4; // 200回馈奖励模式1
 	string amountB = 12; // 冻结
-	string balanceUsdt = 5; // 可提余额csd
-	string balanceDhb = 6; // 可提余额hbs
 	string inviteUrl = 7; // 邀请链接
-	string inviteUserAddress = 8; // 我的推荐人的地址
-	int64 recommendNum = 9; // 历史推荐人数
+	string inviteUserAddress = 17; // 直推人地址
+	int64 recommendNum = 9; // 直推人数
+	// 模式2
+	int64 level = 2; // vip级别
+	string recommendRewardDhbTotal  = 3; // 直推奖总代币
+	string amount2 = 8; // 200回馈奖励模式2
+	string balanceDhb = 6; // 可提代币
+	string rewardWithdraw = 27; // usdt分红
+	string balanceUsdt2 = 35; // 未提现金
+	string withdrawAmount2 = 36; // 提现金额
+	// 统计
+	string totalDeposit = 32; // 总存usdt
+	string withdrawAll = 39; // 提现总金额
+
 	int64 recommendTeamNum = 10; // 团队人数
 	string total = 11; // 总收益
-	string LocationTotal = 15; // 占位收益总
-	string recommendRewardTotal  = 92; // 直推奖总
 	string totalHbs = 98; // hbs总收益
 	string account = 22; // 收款账户地址
-	string withdrawAmount = 30; // 提现总金额
-	string totalDeposit = 32; // 总充值
 
 
 	repeated List LocationList = 52; // 投资列表
@@ -271,6 +279,13 @@ message UserInfoReply {
 		string amount = 2;
 		string amountMax = 4;
 		int64 Num = 5;
+	}
+
+	repeated List22 LocationList2 = 49; // 投资列表
+	message List22 {
+		string created_at = 1;
+		string amount = 2;
+		string amountMax = 4;
 	}
 
 	repeated List2 locationRewardList = 53; // 团队受益列表

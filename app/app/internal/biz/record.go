@@ -60,6 +60,7 @@ type LocationRepo interface {
 	GetMyStopLocationLast(ctx context.Context, userId int64) (*Location, error)
 	GetMyLocationRunningLast(ctx context.Context, userId int64) (*Location, error)
 	GetLocationsByUserId(ctx context.Context, userId int64) ([]*LocationNew, error)
+	GetLocationsByUserId2(ctx context.Context, userId int64) ([]*LocationNew, error)
 	GetRewardLocationByRowOrCol(ctx context.Context, row int64, col int64, locationRowConfig int64) ([]*Location, error)
 	GetRewardLocationByIds(ctx context.Context, ids ...int64) (map[int64]*Location, error)
 	GetLocationMapByIds(ctx context.Context, userIds ...int64) (map[int64][]*Location, error)
