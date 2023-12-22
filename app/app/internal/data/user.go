@@ -103,13 +103,13 @@ type Config struct {
 }
 
 type UserBalance struct {
-	ID           int64     `gorm:"primarykey;type:int"`
-	UserId       int64     `gorm:"type:int"`
-	BalanceUsdt  int64     `gorm:"type:bigint"`
-	BalanceUsdt2 int64     `gorm:"type:bigint"`
-	BalanceDhb   int64     `gorm:"type:bigint"`
-	CreatedAt    time.Time `gorm:"type:datetime;not null"`
-	UpdatedAt    time.Time `gorm:"type:datetime;not null"`
+	ID             int64     `gorm:"primarykey;type:int"`
+	UserId         int64     `gorm:"type:int"`
+	BalanceUsdt    int64     `gorm:"type:bigint"`
+	BalanceUsdtNew int64     `gorm:"type:bigint"`
+	BalanceDhb     int64     `gorm:"type:bigint"`
+	CreatedAt      time.Time `gorm:"type:datetime;not null"`
+	UpdatedAt      time.Time `gorm:"type:datetime;not null"`
 }
 
 type Withdraw struct {
@@ -844,7 +844,7 @@ func (ub UserBalanceRepo) GetUserBalance(ctx context.Context, userId int64) (*bi
 		ID:           userBalance.ID,
 		UserId:       userBalance.UserId,
 		BalanceUsdt:  userBalance.BalanceUsdt,
-		BalanceUsdt2: userBalance.BalanceUsdt2,
+		BalanceUsdt2: userBalance.BalanceUsdtNew,
 		BalanceDhb:   userBalance.BalanceDhb,
 	}, nil
 }
