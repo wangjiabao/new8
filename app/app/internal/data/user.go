@@ -1183,7 +1183,7 @@ func (ub *UserBalanceRepo) WithdrawUsdt2(ctx context.Context, userId int64, amou
 func (ub *UserBalanceRepo) WithdrawUsdt3(ctx context.Context, userId int64, amount int64) error {
 	var err error
 	if res := ub.data.DB(ctx).Table("user_balance").
-		Where("user_id=? and balance_usdt>=?", userId, amount).
+		Where("user_id=? and balance_usdt_new>=?", userId, amount).
 		Updates(map[string]interface{}{"balance_usdt_new": gorm.Expr("balance_usdt_new - ?", amount)}); 0 == res.RowsAffected || nil != res.Error {
 		return errors.NotFound("user balance err", "user balance error")
 	}
