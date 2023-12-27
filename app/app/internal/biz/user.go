@@ -997,7 +997,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount*withdrawRate/100, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
 			if nil != err {
 				return err
 			}
@@ -1007,7 +1007,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount*withdrawRate/100, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
 			if nil != err {
 				return err
 			}
