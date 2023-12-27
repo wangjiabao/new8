@@ -1150,6 +1150,64 @@ func (ub *UserBalanceRepo) UpdateWithdrawAmount(ctx context.Context, id int64, s
 	}, nil
 }
 
+// WithdrawUsdt2 .
+func (ub *UserBalanceRepo) WithdrawUsdt2(ctx context.Context, userId int64, amount int64) error {
+	var err error
+	if res := ub.data.DB(ctx).Table("user_balance").
+		Where("user_id=? and balance_usdt>=?", userId, amount).
+		Updates(map[string]interface{}{"balance_usdt": gorm.Expr("balance_usdt - ?", amount)}); 0 == res.RowsAffected || nil != res.Error {
+		return errors.NotFound("user balance err", "user balance error")
+	}
+
+	var userBalance UserBalance
+	err = ub.data.DB(ctx).Where(&UserBalance{UserId: userId}).Table("user_balance").First(&userBalance).Error
+	if err != nil {
+		return err
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = userBalance.BalanceUsdt
+	userBalanceRecode.UserId = userBalance.UserId
+	userBalanceRecode.Type = "withdraw"
+	userBalanceRecode.CoinType = "usdt"
+	userBalanceRecode.Amount = amount
+	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// WithdrawUsdt3 .
+func (ub *UserBalanceRepo) WithdrawUsdt3(ctx context.Context, userId int64, amount int64) error {
+	var err error
+	if res := ub.data.DB(ctx).Table("user_balance").
+		Where("user_id=? and balance_usdt>=?", userId, amount).
+		Updates(map[string]interface{}{"balance_usdt_new": gorm.Expr("balance_usdt_new - ?", amount)}); 0 == res.RowsAffected || nil != res.Error {
+		return errors.NotFound("user balance err", "user balance error")
+	}
+
+	var userBalance UserBalance
+	err = ub.data.DB(ctx).Where(&UserBalance{UserId: userId}).Table("user_balance").First(&userBalance).Error
+	if err != nil {
+		return err
+	}
+
+	var userBalanceRecode UserBalanceRecord
+	userBalanceRecode.Balance = userBalance.BalanceUsdt
+	userBalanceRecode.UserId = userBalance.UserId
+	userBalanceRecode.Type = "withdraw"
+	userBalanceRecode.CoinType = "usdt_2"
+	userBalanceRecode.Amount = amount
+	err = ub.data.DB(ctx).Table("user_balance_record").Create(&userBalanceRecode).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // WithdrawUsdt .
 func (ub *UserBalanceRepo) WithdrawUsdt(ctx context.Context, userId int64, amount int64, tmpRecommendUserIdsInt []int64) error {
 	var err error
@@ -1412,9 +1470,6 @@ func (ub *UserBalanceRepo) GreateWithdraw(ctx context.Context, userId int64, amo
 	reward.Amount = amountFee
 	reward.BalanceRecordId = 999999999
 	reward.Type = "withdraw" // 本次分红的行为类型
-	if "dhb" == coinType {
-		reward.Type = "withdraw_dhb" // 本次分红的行为类型
-	}
 	reward.TypeRecordId = withdraw.ID
 	reward.Reason = "system_reward" // 给我分红的理由
 	err = ub.data.DB(ctx).Table("reward").Create(&reward).Error
@@ -1453,6 +1508,33 @@ func (ub *UserBalanceRepo) UpdateWithdraw(ctx context.Context, id int64, status 
 		Type:            withdraw.Type,
 		CreatedAt:       withdraw.CreatedAt,
 	}, nil
+}
+
+// GetWithdrawByUserId2 .
+func (ub *UserBalanceRepo) GetWithdrawByUserId2(ctx context.Context, userId int64) ([]*biz.Withdraw, error) {
+	var withdraws []*Withdraw
+	res := make([]*biz.Withdraw, 0)
+	if err := ub.data.db.Where("user_id=?", userId).Table("withdraw").Find(&withdraws).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return res, errors.NotFound("WITHDRAW_NOT_FOUND", "withdraw not found")
+		}
+
+		return nil, errors.New(500, "WITHDRAW ERROR", err.Error())
+	}
+
+	for _, withdraw := range withdraws {
+		res = append(res, &biz.Withdraw{
+			ID:              withdraw.ID,
+			UserId:          withdraw.UserId,
+			Amount:          withdraw.Amount,
+			RelAmount:       withdraw.RelAmount,
+			BalanceRecordId: withdraw.BalanceRecordId,
+			Status:          withdraw.Status,
+			Type:            withdraw.Type,
+			CreatedAt:       withdraw.CreatedAt,
+		})
+	}
+	return res, nil
 }
 
 // GetWithdrawByUserId .

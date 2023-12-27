@@ -197,10 +197,13 @@ type UserBalanceRepo interface {
 	GetUserBalanceUsdtTotal(ctx context.Context) (int64, error)
 	GreateWithdraw(ctx context.Context, userId int64, amount int64, amountFee int64, coinType string) (*Withdraw, error)
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64, tmpRecommendUserIdsInt []int64) error
+	WithdrawUsdt2(ctx context.Context, userId int64, amount int64) error
+	WithdrawUsdt3(ctx context.Context, userId int64, amount int64) error
 	TranUsdt(ctx context.Context, userId int64, toUserId int64, amount int64, tmpRecommendUserIdsInt []int64, tmpRecommendUserIdsInt2 []int64) error
 	WithdrawDhb(ctx context.Context, userId int64, amount int64) error
 	TranDhb(ctx context.Context, userId int64, toUserId int64, amount int64) error
 	GetWithdrawByUserId(ctx context.Context, userId int64, typeCoin string) ([]*Withdraw, error)
+	GetWithdrawByUserId2(ctx context.Context, userId int64) ([]*Withdraw, error)
 	GetUserBalanceRecordByUserId(ctx context.Context, userId int64, typeCoin string, tran string) ([]*UserBalanceRecord, error)
 	GetUserBalanceRecordsByUserId(ctx context.Context, userId int64) ([]*UserBalanceRecord, error)
 	GetTradeByUserId(ctx context.Context, userId int64) ([]*Trade, error)
@@ -423,32 +426,34 @@ func (uuc *UserUseCase) UpdateUserRecommend(ctx context.Context, u *User, req *v
 
 func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoReply, error) {
 	var (
-		myUser                *User
-		userInfo              *UserInfo
-		locations             []*LocationNew
-		myLastStopLocations   []*LocationNew
-		userBalance           *UserBalance
-		userRecommend         *UserRecommend
-		userRecommends        []*UserRecommend
-		userRewards           []*Reward
-		userRewardTotal       int64
-		encodeString          string
-		recommendTeamNum      int64
-		myCode                string
-		amount                = "0"
-		amount2               = "0"
-		configs               []*Config
-		myLastLocationCurrent int64
-		withdrawAmount        int64
-		myUserRecommendUserId int64
-		inviteUserAddress     string
-		myRecommendUser       *User
-		withdrawRate          int64
-		myLocations           []*v1.UserInfoReply_List
-		myLocations2          []*v1.UserInfoReply_List22
-		allRewardList         []*v1.UserInfoReply_List9
-		timeAgain             int64
-		err                   error
+		myUser                  *User
+		userInfo                *UserInfo
+		locations               []*LocationNew
+		myLastStopLocations     []*LocationNew
+		userBalance             *UserBalance
+		userRecommend           *UserRecommend
+		userRecommends          []*UserRecommend
+		userRewards             []*Reward
+		userRewardTotal         int64
+		userRewardWithdrawTotal int64
+		encodeString            string
+		recommendTeamNum        int64
+		myCode                  string
+		amount                  = "0"
+		amount2                 = "0"
+		configs                 []*Config
+		myLastLocationCurrent   int64
+		withdrawAmount          int64
+		withdrawAmount2         int64
+		myUserRecommendUserId   int64
+		inviteUserAddress       string
+		myRecommendUser         *User
+		withdrawRate            int64
+		myLocations             []*v1.UserInfoReply_List
+		myLocations2            []*v1.UserInfoReply_List22
+		allRewardList           []*v1.UserInfoReply_List9
+		timeAgain               int64
+		err                     error
 	)
 
 	// 配置
@@ -680,6 +685,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 					CreatedAt: vUserReward.CreatedAt.Add(8 * time.Hour).Format("2006-01-02 15:04:05"),
 					Amount:    fmt.Sprintf("%.2f", float64(vUserReward.Amount)/float64(10000000000)),
 				})
+			} else if "reward_withdraw" == vUserReward.Reason {
+				userRewardTotal += vUserReward.Amount
+				userRewardWithdrawTotal += vUserReward.Amount
 			} else if "recommend_token" == vUserReward.Reason {
 				recommendRewardDhbTotal += vUserReward.Amount
 			}
@@ -689,12 +697,17 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	var (
 		withdraws []*Withdraw
 	)
-	withdraws, err = uuc.ubRepo.GetWithdrawByUserId(ctx, user.ID, "usdt")
+	withdraws, err = uuc.ubRepo.GetWithdrawByUserId2(ctx, user.ID)
 	if nil != err {
 		return nil, err
 	}
 	for _, v := range withdraws {
-		withdrawAmount += v.Amount
+		if "usdt" == v.Type {
+			withdrawAmount += v.Amount
+		}
+		if "usdt_2" == v.Type {
+			withdrawAmount2 += v.Amount
+		}
 	}
 
 	return &v1.UserInfoReply{
@@ -712,7 +725,9 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		RecommendNum:            userInfo.HistoryRecommend,
 		RecommendTeamNum:        recommendTeamNum,
 		Total:                   fmt.Sprintf("%.2f", float64(userRewardTotal)/float64(10000000000)),
+		RewardWithdraw:          fmt.Sprintf("%.2f", float64(userRewardWithdrawTotal)/float64(10000000000)),
 		WithdrawAmount:          fmt.Sprintf("%.2f", float64(withdrawAmount)/float64(10000000000)),
+		WithdrawAmount2:         fmt.Sprintf("%.2f", float64(withdrawAmount2)/float64(10000000000)),
 		LocationTotal:           fmt.Sprintf("%.2f", float64(locationTotal)/float64(10000000000)),
 		Account:                 "0xAfC39F3592A1024144D1ba6DC256397F4DbfbE2f",
 		LocationList:            myLocations,
@@ -724,6 +739,7 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 		RecommendRewardTotal:    fmt.Sprintf("%.2f", float64(recommendRewardTotal)/float64(10000000000)),
 		RecommendRewardDhbTotal: fmt.Sprintf("%.2f", float64(recommendRewardDhbTotal)/float64(10000000000)),
 		TotalDeposit:            fmt.Sprintf("%.2f", float64(totalDeposit)/float64(10000000000)),
+		WithdrawAll:             fmt.Sprintf("%.2f", float64(withdrawAmount+withdrawAmount2)/float64(10000000000)),
 	}, nil
 }
 
@@ -851,29 +867,29 @@ func (uuc *UserUseCase) TradeList(ctx context.Context, user *User) (*v1.TradeLis
 
 func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, user *User, password string) (*v1.WithdrawReply, error) {
 	var (
-		u           *User
+		//u           *User
 		err         error
 		userBalance *UserBalance
 	)
 
-	u, _ = uuc.repo.GetUserById(ctx, user.ID)
-	if nil != err {
-		return nil, err
-	}
+	//u, _ = uuc.repo.GetUserById(ctx, user.ID)
+	//if nil != err {
+	//	return nil, err
+	//}
 
-	if "" == u.Password || 6 > len(u.Password) {
-		return nil, errors.New(500, "ERROR_TOKEN", "未设置密码，联系管理员")
-	}
+	//if "" == u.Password || 6 > len(u.Password) {
+	//	return nil, errors.New(500, "ERROR_TOKEN", "未设置密码，联系管理员")
+	//}
+	//
+	//if u.Password != user.Password {
+	//	return nil, errors.New(403, "ERROR_TOKEN", "无效TOKEN")
+	//}
 
-	if u.Password != user.Password {
-		return nil, errors.New(403, "ERROR_TOKEN", "无效TOKEN")
-	}
+	//if password != u.Password {
+	//	return nil, errors.New(500, "密码错误", "密码错误")
+	//}
 
-	if password != u.Password {
-		return nil, errors.New(500, "密码错误", "密码错误")
-	}
-
-	if "dhb" != req.SendBody.Type && "usdt" != req.SendBody.Type {
+	if "usdt" != req.SendBody.Type && "usdt_2" != req.SendBody.Type {
 		return &v1.WithdrawReply{
 			Status: "fail",
 		}, nil
@@ -888,22 +904,36 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 	amountFloat *= 10000000000
 	amount, _ := strconv.ParseInt(strconv.FormatFloat(amountFloat, 'f', -1, 64), 10, 64)
 
-	if "dhb" == req.SendBody.Type {
-		if userBalance.BalanceDhb < amount {
+	//if "dhb" == req.SendBody.Type {
+	//	if userBalance.BalanceDhb < amount {
+	//		return &v1.WithdrawReply{
+	//			Status: "fail",
+	//		}, nil
+	//	}
+	//
+	//	if 1000000000000 > amount {
+	//		return &v1.WithdrawReply{
+	//			Status: "fail",
+	//		}, nil
+	//	}
+	//}
+
+	if "usdt" == req.SendBody.Type {
+		if userBalance.BalanceUsdt < amount {
 			return &v1.WithdrawReply{
 				Status: "fail",
 			}, nil
 		}
 
-		if 1000000000000 > amount {
+		if 100000000000 > amount {
 			return &v1.WithdrawReply{
 				Status: "fail",
 			}, nil
 		}
 	}
 
-	if "usdt" == req.SendBody.Type {
-		if userBalance.BalanceUsdt < amount {
+	if "usdt_2" == req.SendBody.Type {
+		if userBalance.BalanceUsdt2 < amount {
 			return &v1.WithdrawReply{
 				Status: "fail",
 			}, nil
@@ -944,28 +974,55 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 		}
 	}
 
+	// 配置
+	var (
+		configs      []*Config
+		withdrawRate int64
+	)
+	configs, err = uuc.configRepo.GetConfigByKeys(ctx,
+		"withdraw_rate",
+	)
+	if nil != configs {
+		for _, vConfig := range configs {
+			if "withdraw_rate" == vConfig.KeyName {
+				withdrawRate, _ = strconv.ParseInt(vConfig.Value, 10, 64)
+			}
+		}
+	}
+
 	if err = uuc.tx.ExecTx(ctx, func(ctx context.Context) error { // 事务
 
 		if "usdt" == req.SendBody.Type {
-			err = uuc.ubRepo.WithdrawUsdt(ctx, user.ID, amount, tmpRecommendUserIdsInt) // 提现
+			err = uuc.ubRepo.WithdrawUsdt2(ctx, user.ID, amount) // 提现
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-10000000000, 10000000000, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount*withdrawRate/100, req.SendBody.Type)
 			if nil != err {
 				return err
 			}
 
-		} else if "dhb" == req.SendBody.Type {
-			err = uuc.ubRepo.WithdrawDhb(ctx, user.ID, amount) // 提现
+		} else if "usdt_2" == req.SendBody.Type {
+			err = uuc.ubRepo.WithdrawUsdt3(ctx, user.ID, amount) // 提现
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-100000000000, 100000000000, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount*withdrawRate/100, req.SendBody.Type)
 			if nil != err {
 				return err
 			}
+
 		}
+		//else if "dhb" == req.SendBody.Type {
+		//	err = uuc.ubRepo.WithdrawDhb(ctx, user.ID, amount) // 提现
+		//	if nil != err {
+		//		return err
+		//	}
+		//	_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-100000000000, 100000000000, req.SendBody.Type)
+		//	if nil != err {
+		//		return err
+		//	}
+		//}
 
 		return nil
 	}); nil != err {

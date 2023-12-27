@@ -244,23 +244,23 @@ func (a *AppService) Withdraw(ctx context.Context, req *v1.WithdrawRequest) (*v1
 		if c["UserId"] == nil {
 			return nil, errors.New(500, "ERROR_TOKEN", "无效TOKEN")
 		}
-		if c["Password"] == nil {
-			return nil, errors.New(403, "ERROR_TOKEN", "无效TOKEN")
-		}
+		//if c["Password"] == nil {
+		//	return nil, errors.New(403, "ERROR_TOKEN", "无效TOKEN")
+		//}
 		userId = int64(c["UserId"].(float64))
-		tokenPassword = c["Password"].(string)
+		//tokenPassword = c["Password"].(string)
 	}
 
-	if "" == req.SendBody.Password || 6 > len(req.SendBody.Password) {
-		return nil, errors.New(500, "AUTHORIZE_ERROR", "账户密码必须大于6位")
-	}
+	//if "" == req.SendBody.Password || 6 > len(req.SendBody.Password) {
+	//	return nil, errors.New(500, "AUTHORIZE_ERROR", "账户密码必须大于6位")
+	//}
 	// TODO 验证签名
-	password := fmt.Sprintf("%x", md5.Sum([]byte(req.SendBody.Password)))
+	//password := fmt.Sprintf("%x", md5.Sum([]byte(req.SendBody.Password)))
 
 	return a.uuc.Withdraw(ctx, req, &biz.User{
 		ID:       userId,
 		Password: tokenPassword,
-	}, password)
+	}, "")
 }
 
 // Tran tran .
