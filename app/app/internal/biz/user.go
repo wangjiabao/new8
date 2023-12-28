@@ -712,10 +712,10 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	}
 	for _, v := range withdraws {
 		if "usdt" == v.Type {
-			withdrawAmount += v.Amount
+			withdrawAmount += v.RelAmount
 		}
 		if "usdt_2" == v.Type {
-			withdrawAmount2 += v.Amount
+			withdrawAmount2 += v.RelAmount
 		}
 	}
 
