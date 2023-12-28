@@ -479,8 +479,12 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	locations, err = uuc.locationRepo.GetLocationsByUserId(ctx, myUser.ID)
 	if nil != locations && 0 < len(locations) {
 		for _, v := range locations {
+			var tmp int64
+			if v.Current <= v.CurrentMax {
+				tmp = v.CurrentMax - v.Current
+			}
 			if "running" == v.Status {
-				amount = fmt.Sprintf("%.4f", float64(v.Current)/float64(10000000000))
+				amount = fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000))
 			}
 
 			myLocations = append(myLocations, &v1.UserInfoReply_List{
@@ -511,8 +515,13 @@ func (uuc *UserUseCase) UserInfo(ctx context.Context, user *User) (*v1.UserInfoR
 	locations2, err = uuc.locationRepo.GetLocationsByUserId2(ctx, myUser.ID)
 	if nil != locations2 && 0 < len(locations2) {
 		for _, v := range locations2 {
+			var tmp int64
+			if v.Current <= v.CurrentMax {
+				tmp = v.CurrentMax - v.Current
+			}
+
 			if "running" == v.Status {
-				amount2 = fmt.Sprintf("%.4f", float64(v.Current)/float64(10000000000))
+				amount2 = fmt.Sprintf("%.4f", float64(tmp)/float64(10000000000))
 			}
 
 			myLocations2 = append(myLocations2, &v1.UserInfoReply_List22{
