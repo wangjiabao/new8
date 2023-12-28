@@ -195,7 +195,7 @@ type UserBalanceRepo interface {
 	GetUserRewardsLastMonthFee(ctx context.Context) ([]*Reward, error)
 	GetUserBalanceByUserIds(ctx context.Context, userIds ...int64) (map[int64]*UserBalance, error)
 	GetUserBalanceUsdtTotal(ctx context.Context) (int64, error)
-	GreateWithdraw(ctx context.Context, userId int64, amount int64, amountFee int64, coinType string) (*Withdraw, error)
+	GreateWithdraw(ctx context.Context, userId int64, relAmount int64, amount int64, amountFee int64, coinType string) (*Withdraw, error)
 	WithdrawUsdt(ctx context.Context, userId int64, amount int64, tmpRecommendUserIdsInt []int64) error
 	WithdrawUsdt2(ctx context.Context, userId int64, amount int64) error
 	WithdrawUsdt3(ctx context.Context, userId int64, amount int64) error
@@ -1006,7 +1006,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
 			if nil != err {
 				return err
 			}
@@ -1016,7 +1016,7 @@ func (uuc *UserUseCase) Withdraw(ctx context.Context, req *v1.WithdrawRequest, u
 			if nil != err {
 				return err
 			}
-			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
+			_, err = uuc.ubRepo.GreateWithdraw(ctx, user.ID, amount, amount-amount*withdrawRate/100, amount*withdrawRate/100, req.SendBody.Type)
 			if nil != err {
 				return err
 			}

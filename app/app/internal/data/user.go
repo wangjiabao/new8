@@ -1450,10 +1450,11 @@ func (ub *UserBalanceRepo) TranDhb(ctx context.Context, userId int64, toUserId i
 }
 
 // GreateWithdraw .
-func (ub *UserBalanceRepo) GreateWithdraw(ctx context.Context, userId int64, amount int64, amountFee int64, coinType string) (*biz.Withdraw, error) {
+func (ub *UserBalanceRepo) GreateWithdraw(ctx context.Context, userId int64, relAmount int64, amount int64, amountFee int64, coinType string) (*biz.Withdraw, error) {
 	var withdraw Withdraw
 	withdraw.UserId = userId
 	withdraw.Amount = amount
+	withdraw.RelAmount = relAmount
 	withdraw.Type = coinType
 	withdraw.Status = "rewarded"
 	res := ub.data.DB(ctx).Table("withdraw").Create(&withdraw)
